@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DiagnoCrypt – Your Virtual Healthcare Chatbot</title>
+<style>
+:root{--bg:#060d0b;--ink:#e8f5ee;--mut:#8fb0a6;--pri:#1ea34a;--pri2:#16863c;--red:#ff6b6b;--line:rgba(255,255,255,.12);--glass:rgba(255,255,255,.07);--bot:#17302a;--warn:#3a3114;--warnink:#f3dd9a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#shell{max-width:640px;margin:0 auto;min-height:100vh;position:relative;background:radial-gradient(120% 55% at 50% 0,#1b5a38 0,#0e2a1e 45%,#0a1511 100%)}
+@media(min-width:700px){#shell{margin:16px auto;min-height:calc(100vh - 32px);border-radius:28px;border:1px solid var(--line);overflow:hidden}}
+#side{display:none}
+#side button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:12px;padding:11px 14px;margin-bottom:4px;cursor:pointer;color:var(--ink);font-size:15px}
+#side button:hover{background:var(--glass)}#side button.on{background:var(--pri);font-weight:600}
+#side .logo{font-size:20px;font-weight:700;margin:4px 6px 18px}
+@media(min-width:1000px){
+ #shell{max-width:1180px;min-height:calc(100vh - 32px)}
+ body.in #shell{display:grid;grid-template-columns:250px minmax(0,1fr)}
+ body.in #side{display:block;padding:22px 14px;border-right:1px solid var(--line);background:rgba(0,0,0,.18)}
+ .scr{padding:30px 40px 56px}
+ body.in .scr>*{max-width:880px}
+ #welcome,#signup,#login,#congrats{max-width:480px;margin:0 auto;width:100%}
+ .feat{grid-template-columns:repeat(6,1fr)}
+ #log{max-height:58vh;min-height:44vh}
+ .bar button{display:none}
+ .hello h1 br{display:none}
+}
+.scr{display:none;padding:18px 18px 40px}.scr.on{display:block}
+select,input,textarea,button{font:inherit;color:inherit}
+input,select,textarea{width:100%;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:11px 13px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--pri)}
+select option{background:#10201a}
+label{font-size:13px;color:var(--mut);display:block;margin:12px 0 4px}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:18px;backdrop-filter:blur(8px)}
+.center{text-align:center}
+h1,h2,h3{margin:0}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:99px;padding:12px 20px;cursor:pointer;font-weight:600;width:100%}
+.btn.alt{background:var(--glass);border:1px solid var(--line);font-weight:500}
+.btn.sm{width:auto;padding:8px 16px;font-size:14px}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.link{color:var(--red);background:none;border:0;cursor:pointer;font-size:14px;padding:6px}
+.err{color:var(--red);font-size:13px;min-height:18px;margin-top:8px}
+.note{color:var(--mut);font-size:12px;margin-top:8px}
+.slide{position:relative;height:54px;border-radius:99px;background:var(--pri2);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;cursor:pointer;touch-action:none;user-select:none;box-shadow:0 0 0 4px rgba(30,163,74,.18)}
+.knob{position:absolute;left:5px;top:5px;width:44px;height:44px;border-radius:50%;background:#fff;color:var(--pri2);display:flex;align-items:center;justify-content:center;font-size:20px}
+.dots{display:flex;gap:6px;justify-content:center;margin:18px 0}.dots i{width:7px;height:7px;border-radius:50%;background:#ffffff40}.dots i:first-child{background:var(--pri)}
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.bar button{background:var(--glass);border:1px solid var(--line);border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:18px}
+.bar h2{font-size:19px}
+.hello{display:flex;justify-content:space-between;align-items:center}
+.hello h1{font-size:26px;line-height:1.15}
+.bell{position:relative;background:var(--glass);border:1px solid var(--line);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:19px}
+.bell i{position:absolute;top:8px;right:9px;width:10px;height:10px;border-radius:50%;background:var(--pri);display:none}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 16px}
+.feat button{background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:12px 4px;cursor:pointer;font-size:12px;line-height:1.25}
+.feat span{display:block;font-size:24px;margin-bottom:4px}
+.tip{background:linear-gradient(135deg,#0e3a44,#17606a);border-radius:20px;padding:18px;margin-bottom:16px}
+.tip .out{font-size:14px}
+.sec{font-weight:600;margin:16px 0 8px}
+.warn{background:var(--warn);color:var(--warnink);border-radius:12px;padding:8px 12px;font-size:13px;margin-bottom:10px}
+#log{display:flex;flex-direction:column;gap:8px;min-height:38vh;max-height:52vh;overflow-y:auto;padding:4px 2px}
+.m{padding:9px 13px;border-radius:16px;max-width:88%;white-space:pre-wrap;word-wrap:break-word}
+.u{align-self:flex-end;background:var(--pri)}.b{align-self:flex-start;background:var(--bot)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{background:var(--glass);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:13px;cursor:pointer}
+.out{white-space:pre-wrap;margin-top:10px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding:9px 0;font-size:14px}
+.due{color:var(--red);font-weight:600}
+a{color:#6be28f}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut);margin-top:12px}.chk input{width:auto}
+.party{font-size:72px}
+</style>
+</head>
+<body>
+<div id="shell">
+<aside id="side"><div class="logo">🩺 DiagnoCrypt</div>
+<button data-go="home">🏠 Home</button><button data-go="chat">🤒 Symptom Checker</button><button data-go="prev">🌿 Preventive Healthcare</button><button data-go="vacc">💉 Vaccination Schedules</button><button data-go="appt">🩻 Appointments</button><button data-go="hosp">🏥 Hospital Locator</button><button data-go="out">⚠️ Alerts</button><button data-go="prof">👤 My Profile</button></aside>
+
+<div class="scr on" id="welcome" style="padding-top:60px">
+  <div class="glass center" style="padding:30px 20px;background:rgba(255,255,255,.1)">
+    <div style="font-size:44px">🩺</div>
+    <h1 style="margin:8px 0 10px;font-size:28px;line-height:1.15">Your Virtual Healthcare Chatbot</h1>
+    <div style="font-size:13px;color:var(--mut)">Your friendly health companion for checking symptoms, sending reminders and guiding care for families across India.</div>
+  </div>
+  <h3 class="center" style="margin-top:80px">Welcome to the app</h3>
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="slide" id="start"><div class="knob">»</div>Get Started</div>
+  <div class="center" style="margin-top:14px"><button class="link" id="toSignup">Create an account</button></div>
+</div>
+
+<div class="scr" id="signup" style="padding-top:50px">
+  <div class="center"><h2 style="font-size:26px">Create an account</h2><div class="note">Welcome to DiagnoCrypt</div></div>
+  <div class="glass" style="margin-top:18px">
+    <label style="margin-top:0">Name</label><input id="sname" autocomplete="name">
+    <label>Email address</label><input id="semail" type="email" autocomplete="username" autocapitalize="none">
+    <label>Password (min 6 characters)</label><input id="spass" type="password" autocomplete="new-password">
+    <label>Confirm password</label><input id="spass2" type="password" autocomplete="new-password">
+    <div class="chk"><input type="checkbox" id="sterms"><span>I understand DiagnoCrypt gives general information, not medical diagnosis, and that I can’t recover my data if I forget my password.</span></div>
+    <div class="err" id="serr"></div>
+    <button class="btn" id="sgo">Sign up</button>
+  </div>
+  <div class="center note">Already have an account? <button class="link" id="toLogin1">Sign in here</button></div>
+</div>
+
+<div class="scr" id="congrats" style="padding-top:90px">
+  <div class="center"><div class="party">🎉</div><h2 style="margin:10px 0">Congratulations!</h2>
+  <p style="color:var(--mut);font-size:14px">Your account is ready. Your health data is encrypted on this device with a key made from your password.</p>
+  <button class="btn" id="cgo" style="margin-top:20px">Continue</button></div>
+</div>
+
+<div class="scr" id="login" style="padding-top:50px">
+  <div class="center"><h2 style="font-size:26px">Login</h2><div class="note">Welcome back to the app</div></div>
+  <div class="glass" style="margin-top:18px">
+    <label style="margin-top:0">Email address</label><input id="lemail" type="email" autocomplete="username" autocapitalize="none">
+    <label>Password</label><input id="lpass" type="password" autocomplete="current-password">
+    <div class="err" id="lerr"></div>
+    <button class="btn" id="lgo">Login</button>
+    <div class="note">There is no password recovery: your data is encrypted with your password.</div>
+  </div>
+  <div class="center" style="margin-top:12px"><button class="link" id="toSignup2">Create an account</button></div>
+</div>
+
+<div class="scr" id="home">
+  <div class="hello"><h1 id="hg">Hello!</h1><button class="bell" id="bell" aria-label="Reminders">🔔<i id="bdot"></i></button></div>
+  <div class="slide" id="toChat" style="margin:16px 0 4px"><div class="knob">🤖</div><span style="font-size:13px;padding:0 54px">Discover Our Healthcare Chat Assistant</span></div>
+  <div class="sec">Our Features</div>
+  <div class="feat" id="feat">
+    <button data-go="prev"><span>🌿</span>Preventive Healthcare</button>
+    <button data-go="appt"><span>🩻</span>Teleconsultation</button>
+    <button data-go="chat"><span>🤒</span>Disease Symptoms</button>
+    <button data-go="vacc"><span>💉</span>Vaccination Schedules</button>
+    <button data-go="out"><span>⚠️</span>Alerts</button>
+    <button data-go="hosp"><span>🏥</span>Hospital Locator</button>
+  </div>
+  <div class="tip"><b>Today’s health tip</b><div class="out" id="tipo">Tap below for a tip made for you.</div><button class="btn alt sm" id="tipb" style="margin-top:10px">Get today’s tip</button></div>
+  <div class="sec" id="remh">Reminders</div><div class="glass" id="hsum" style="font-size:14px;white-space:pre-wrap"></div>
+  <div class="sec">Appointment history</div><div class="glass" id="hist" style="padding:6px 16px"></div>
+  <div class="center" style="margin-top:16px"><button class="link" id="toProf" style="color:var(--mut)">👤 My profile</button></div>
+</div>
+
+<div class="scr" id="chat">
+  <div class="bar"><button data-back>←</button><h2>Symptom Checker</h2></div>
+  <div class="warn">General information only, not a diagnosis. In an emergency call <b>108</b> or <b>112</b> now.</div>
+  <div class="row" style="margin-bottom:8px"><select id="lang" style="width:auto"><option>English</option><option>Hindi (हिन्दी)</option><option>Marathi (मराठी)</option></select><button class="btn alt sm" id="clr">New chat</button></div>
+  <div id="log"></div><div class="chips" id="chips"></div>
+  <textarea id="inp" rows="2" placeholder="Describe your symptoms…"></textarea>
+  <button class="btn" id="send" style="margin-top:8px">Send</button><div class="note" id="chatnote"></div>
+</div>
+
+<div class="scr" id="prev">
+  <div class="bar"><button data-back>←</button><h2>Preventive Healthcare</h2></div>
+  <div class="glass"><b>Ask how to stay healthy</b>
+    <input id="ptopic" placeholder="e.g. dengue, diabetes, seasonal flu" style="margin-top:8px">
+    <button class="btn" id="pgo" style="margin-top:10px">Get prevention plan</button><div class="out" id="po"></div></div>
+</div>
+
+<div class="scr" id="vacc">
+  <div class="bar"><button data-back>←</button><h2>Vaccination Schedules</h2></div>
+  <div class="glass"><label style="margin-top:0">Vaccine</label><input id="vn" placeholder="e.g. Flu shot, Tetanus booster">
+    <label>Due date</label><input id="vd" type="date">
+    <div class="row" style="margin-top:12px"><button class="btn sm" id="vadd">Add reminder</button><button class="btn alt sm" id="vask">Which vaccines may I need?</button></div>
+    <div id="vlist"></div><div class="out" id="vo"></div></div>
+</div>
+
+<div class="scr" id="hosp">
+  <div class="bar"><button data-back>←</button><h2>Hospital Locator</h2></div>
+  <div class="glass"><p style="margin:0 0 10px;font-size:14px">Uses your device location to open a live map search.</p>
+    <button class="btn" id="gps">📍 Use my location</button>
+    <label>Or search by place</label><div class="row"><input id="place" placeholder="Village / town / city" style="flex:1"><button class="btn alt sm" id="pgo2">Search</button></div>
+    <div class="out" id="ho"></div></div>
+</div>
+
+<div class="scr" id="appt">
+  <div class="bar"><button data-back>←</button><h2>Appointments</h2></div>
+  <div class="glass"><label style="margin-top:0">Doctor / hospital</label><input id="ad" placeholder="e.g. Dr. Patil, Civil Hospital">
+    <label>Date &amp; time</label><input id="at" type="datetime-local">
+    <label>Type</label><select id="ak"><option>In-person visit</option><option>Teleconsultation</option></select>
+    <label>Reason</label><input id="ar" placeholder="Short reason">
+    <div class="row" style="margin-top:12px"><button class="btn sm" id="aadd">Save request</button><button class="btn alt sm" id="asum">Doctor summary</button></div>
+    <div id="alist"></div><div class="out" id="ao"></div>
+    <div class="note">This saves your plan on this device. It doesn’t book with a hospital, so confirm by phone or the hospital’s own system.</div></div>
+</div>
+
+<div class="scr" id="out">
+  <div class="bar"><button data-back>←</button><h2>Alerts</h2></div>
+  <div class="glass"><div class="row"><input id="reg" placeholder="Your district / state" style="flex:1"><button class="btn sm" id="obt">Check</button></div>
+    <div class="out" id="oo"></div>
+    <div class="note">AI-generated seasonal awareness, not a live feed. For current alerts see your state health department or IDSP.</div></div>
+</div>
+
+<div class="scr" id="prof">
+  <div class="bar"><button data-back>←</button><h2>My Profile</h2></div>
+  <div class="glass"><label style="margin-top:0">Name</label><input id="pn"><label>Age</label><input id="pa" type="number" min="0" max="120">
+    <label>Existing conditions</label><input id="pc" placeholder="e.g. diabetes, asthma">
+    <label>Allergies</label><input id="pl"><label>Current medicines</label><input id="pm">
+    <div class="row" style="margin-top:14px"><button class="btn sm" id="psave">Save</button><button class="btn alt sm" id="logout">Log out</button><button class="link" id="pdel">Delete account</button></div>
+    <div class="note" id="pnote">Encrypted on this device. Profile details go to the AI only when you chat or ask for tips.</div></div>
+</div>
+
+</div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var S={profile:{},vacc:[],appts:[]},KEY=null,USER=null,AK="dc.acc",stack=[];
+var te=new TextEncoder(),td=new TextDecoder();
+function b2s(b){var a=new Uint8Array(b),s="";for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s)}
+function s2b(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})}
+async function keyFrom(pw,salt){var m=await crypto.subtle.importKey("raw",te.encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:150000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function seal(k,o){var iv=crypto.getRandomValues(new Uint8Array(12));var ct=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},k,te.encode(JSON.stringify(o)));return{iv:b2s(iv),ct:b2s(ct)}}
+async function unseal(k,o){return JSON.parse(td.decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:s2b(o.iv)},k,s2b(o.ct))))}
+function accs(){try{return JSON.parse(localStorage.getItem(AK))||{}}catch(e){return{}}}
+function putAccs(a){localStorage.setItem(AK,JSON.stringify(a))}
+var saving=Promise.resolve();
+function save(){if(!KEY)return;saving=saving.then(async function(){try{var a=accs();a[USER].data=await seal(KEY,S);putAccs(a)}catch(e){}})}
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+/* router */
+function show(id,back){document.querySelectorAll(".scr").forEach(function(s){s.classList.toggle("on",s.id===id)});document.querySelectorAll("#side button").forEach(function(b){b.classList.toggle("on",b.dataset.go===id)});if(!back)stack.push(id);window.scrollTo(0,0)}
+function goBack(){stack.pop();show(stack[stack.length-1]||"home",true)}
+document.querySelectorAll("[data-back]").forEach(function(b){b.onclick=goBack});
+$("side").onclick=function(e){var t=e.target.closest("[data-go]");t&&show(t.dataset.go)};
+$("feat").onclick=function(e){var t=e.target.closest("[data-go]");t&&show(t.dataset.go)};
+$("toProf").onclick=function(){show("prof")};
+
+/* slide buttons: click or drag */
+function slider(el,fn){var x0=null,k=el.querySelector(".knob"),w;
+  el.onclick=function(){fn()};
+  k.onpointerdown=function(e){x0=e.clientX;w=el.clientWidth-54;k.setPointerCapture(e.pointerId)};
+  k.onpointermove=function(e){if(x0==null)return;var d=Math.max(0,Math.min(w,e.clientX-x0));k.style.transform="translateX("+d+"px)"};
+  k.onpointerup=function(e){if(x0==null)return;var d=e.clientX-x0;x0=null;k.style.transform="";if(d>w*.6){e.stopPropagation();fn()}}}
+slider($("start"),function(){show("login")});
+slider($("toChat"),function(){show("chat")});
+$("toSignup").onclick=$("toSignup2").onclick=function(){show("signup")};
+$("toLogin1").onclick=function(){show("login")};
+
+/* AI */
+var sample=null,hist=[];
+sample=async function(prompt){
+  var r;try{r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:prompt})})}catch(e){throw{code:"network"}}
+  if(!r.ok)throw{code:r.status===429?"rate_limited":"error"};
+  var j=await r.json();return{text:j.text}};
+function ctx(){var p=S.profile,a=[];["name","age","conditions","allergies","medicines"].forEach(function(k){if(p[k])a.push(k+": "+p[k])});return a.length?a.join("; "):"not provided"}
+var SYS="You are DiagnoCrypt, a friendly AI health assistant for families in rural and semi-urban India. Use simple, short, warm language. Reply in %L. You give general health information, possible common causes, precautions, home care and clear advice on when to see a doctor. Never claim to diagnose, never prescribe prescription drugs or exact doses. Ask one or two brief follow-up questions when symptoms are unclear. If symptoms suggest an emergency (chest pain, breathing trouble, stroke signs, severe bleeding, seizures, suicidal thoughts, poisoning, high fever in infants), start with a clear instruction to call 108/112 or go to the nearest hospital now. Mention affordable options like government PHCs/Civil hospitals when relevant. End symptom answers with a one-line reminder that you are not a doctor. User profile: %P.";
+function sys(){return SYS.replace("%L",$("lang").value).replace("%P",ctx())}
+async function ask(prompt,el,btn){
+  if(!sample){el.textContent="AI is not available right now.";return}
+  btn&&(btn.disabled=true);el.textContent="Thinking…";
+  try{var r=await sample(sys()+"\n\n"+prompt,{cache:false,onText:function(t){el.textContent=t.text}});el.textContent=r.text}
+  catch(e){el.textContent=e&&e.code==="rate_limited"?"Too many requests. Please wait a moment and try again.":e&&e.code==="not_granted"?"AI access was not allowed for this page.":"Sorry, something went wrong. Please try again."}
+  btn&&(btn.disabled=false)}
+
+/* chat */
+var log=$("log");
+function bubble(c,t){var d=document.createElement("div");d.className="m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+function hello(){log.innerHTML="";hist=[];bubble("b","Hello"+(S.profile.name?" "+S.profile.name:"")+"! I’m DiagnoCrypt. Tell me what you’re feeling and for how long. I’ll share possible causes, precautions and when to see a doctor.")}
+var ex=["I have fever and body ache for 2 days","Stomach pain after eating","Child has cough and cold","How do I prevent dengue?"];
+$("chips").innerHTML=ex.map(function(x){return '<span class="chip">'+x+'</span>'}).join("");
+$("chips").onclick=function(e){if(e.target.className==="chip"){$("inp").value=e.target.textContent;send()}};
+async function send(){
+  var v=$("inp").value.trim();if(!v||$("send").disabled)return;
+  $("inp").value="";bubble("u",v);hist.push({r:"Patient",t:v});
+  var el=bubble("b","Thinking…");$("send").disabled=true;
+  await ask("Conversation so far:\n"+hist.slice(-12).map(function(h){return h.r+": "+h.t}).join("\n")+"\n\nWrite DiagnoCrypt’s next reply only.",el,null);
+  hist.push({r:"DiagnoCrypt",t:el.textContent});$("send").disabled=false;log.scrollTop=log.scrollHeight}
+$("send").onclick=send;$("clr").onclick=hello;
+$("inp").onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}};
+
+/* tips, prevention, alerts */
+$("tipb").onclick=function(){ask("Give one practical preventive-health tip for today, tailored to the profile and the current season in India, in 3 short lines.",$("tipo"),$("tipb"))};
+$("pgo").onclick=function(){var t=$("ptopic").value.trim()||"general wellbeing";ask("Give a short prevention plan about: "+t+". Include 5 simple, low-cost steps for a family in India and the warning signs that mean seeing a doctor.",$("po"),$("pgo"))};
+$("obt").onclick=function(){var r=$("reg").value.trim()||"India";ask("Region: "+r+". Describe which infectious diseases (e.g. dengue, malaria, influenza, cholera, typhoid) are commonly a concern around this time of year in this region, key warning signs, and 4 simple precautions. State clearly this is general seasonal awareness, not live outbreak data.",$("oo"),$("obt"))};
+
+/* vaccines */
+function rv(){$("vlist").innerHTML=S.vacc.map(function(v,i){var d=Math.ceil((new Date(v.d)-new Date())/864e5);
+  var s=d<0?'<span class="due">Overdue by '+(-d)+' d</span>':d<=7?'<span class="due">Due in '+d+' d</span>':'In '+d+' d';
+  return '<div class="item"><span>'+esc(v.n)+' · '+esc(v.d)+'<br>'+s+'</span><button class="btn alt sm" data-i="'+i+'">Remove</button></div>'}).join("")}
+$("vlist").onclick=function(e){var i=e.target.dataset.i;if(i!=null){S.vacc.splice(i,1);save();rv();home()}};
+$("vadd").onclick=function(){var n=$("vn").value.trim(),d=$("vd").value;if(!n||!d)return;S.vacc.push({n:n,d:d});S.vacc.sort(function(a,b){return a.d<b.d?-1:1});save();$("vn").value="";rv();home()};
+$("vask").onclick=function(){ask("Based on the profile (age matters), list which routine vaccines under India’s Universal Immunisation Programme and common adult vaccines this person may want to discuss with a health worker. Keep it short and say to confirm with a doctor/ANM.",$("vo"),$("vask"))};
+
+/* hospitals */
+function maplink(q,lat,lng){var u="https://www.google.com/maps/search/"+encodeURIComponent(q)+(lat?"/@"+lat+","+lng+",14z":"");return '<a href="'+u+'" target="_blank" rel="noopener">Open “'+esc(q)+'” in Google Maps ↗</a>'}
+$("gps").onclick=function(){
+  if(!navigator.geolocation){$("ho").textContent="Location isn’t supported here. Use the place search.";return}
+  $("ho").textContent="Getting your location…";
+  navigator.geolocation.getCurrentPosition(function(p){var la=p.coords.latitude.toFixed(4),lo=p.coords.longitude.toFixed(4);
+    $("ho").innerHTML=["hospitals near me","doctors near me","government hospital","pharmacy"].map(function(q){return maplink(q,la,lo)}).join("<br>")},
+  function(){$("ho").textContent="Couldn’t get your location. Allow location access or use the place search."},{timeout:12000})};
+$("pgo2").onclick=function(){var p=$("place").value.trim();if(!p)return;$("ho").innerHTML=["hospitals in ","doctors in ","government hospital in "].map(function(q){return maplink(q+p)}).join("<br>")};
+
+/* appointments */
+function ra(){$("alist").innerHTML=S.appts.map(function(a,i){return '<div class="item"><span><b>'+esc(a.d)+'</b> · '+esc(a.k)+'<br>'+esc(a.t.replace("T"," "))+(a.r?'<br>'+esc(a.r):'')+'</span><button class="btn alt sm" data-i="'+i+'">Remove</button></div>'}).join("")}
+$("alist").onclick=function(e){var i=e.target.dataset.i;if(i!=null){S.appts.splice(i,1);save();ra();home()}};
+$("aadd").onclick=function(){var d=$("ad").value.trim(),t=$("at").value;if(!d||!t)return;S.appts.push({d:d,t:t,k:$("ak").value,r:$("ar").value.trim()});S.appts.sort(function(a,b){return a.t<b.t?-1:1});save();ra();home();
+  $("ao").textContent="Saved: "+$("ak").value+" with "+d+" on "+t.replace("T"," at ")+". Please confirm with the clinic or hospital, and carry your ID and past reports."};
+$("asum").onclick=function(){var c=hist.map(function(h){return h.r+": "+h.t}).join("\n")||"(no chat yet)";
+  ask("Write a short, clear summary the patient can show or read to a doctor: symptoms, duration, relevant profile details, and 3 questions to ask. Use only what appears below.\n\nChat:\n"+c,$("ao"),$("asum"))};
+
+/* profile */
+function lp(){var p=S.profile;$("pn").value=p.name||"";$("pa").value=p.age||"";$("pc").value=p.conditions||"";$("pl").value=p.allergies||"";$("pm").value=p.medicines||""}
+$("psave").onclick=function(){S.profile={name:$("pn").value.trim(),age:$("pa").value,conditions:$("pc").value.trim(),allergies:$("pl").value.trim(),medicines:$("pm").value.trim()};save();$("pnote").textContent="Saved (encrypted) on this device.";hello();home()};
+function logout(){document.body.classList.remove("in");KEY=null;USER=null;S={profile:{},vacc:[],appts:[]};hist=[];stack=[];["tipo","vo","ao","oo","ho","po"].forEach(function(i){$(i).textContent=""});$("tipo").textContent="Tap below for a tip made for you.";show("login")}
+$("logout").onclick=logout;
+$("pdel").onclick=function(){if(!confirm("Delete your account and all saved data from this device?"))return;var a=accs();delete a[USER];try{putAccs(a)}catch(e){}logout()};
+
+/* home */
+function home(){
+  $("hg").innerHTML="Hello,<br> "+esc(S.profile.name||USER||"");
+  var o=[],now=new Date();
+  S.vacc.forEach(function(v){var d=Math.ceil((new Date(v.d)-now)/864e5);if(d<=30)o.push("💉 "+v.n+(d<0?" is overdue":" is due in "+d+" day(s)"))});
+  var n=S.appts.filter(function(x){return new Date(x.t)>=now})[0];
+  if(n)o.push("📅 Next: "+n.k+" with "+n.d+" on "+n.t.replace("T"," at "));
+  $("hsum").textContent=o.length?o.join("\n"):"Nothing due right now.";
+  $("bdot").style.display=o.length?"block":"none";
+  $("hist").innerHTML=S.appts.length?S.appts.slice().reverse().slice(0,5).map(function(a){return '<div class="item" style="border-top:0"><span>👩‍⚕️ <b>'+esc(a.d)+'</b><br><span style="color:var(--mut);font-size:12px">'+esc(a.k)+' · '+esc(a.t.replace("T"," "))+'</span></span></div>'}).join(""):'<div class="item" style="border:0;color:var(--mut)">No appointments yet. Add one under Teleconsultation.</div>'}
+$("bell").onclick=function(){$("remh").scrollIntoView({behavior:"smooth"})};
+function enter(){document.body.classList.add("in");stack=[];lp();rv();ra();hello();home();show("home")}
+
+/* auth */
+var EM=/^\S+@\S+\.\S+$/;
+async function signup(){
+  var err=$("serr");err.textContent="";var nm=$("sname").value.trim(),u=$("semail").value.trim().toLowerCase(),p=$("spass").value;
+  if(!nm){err.textContent="Please enter your name.";return}
+  if(!EM.test(u)){err.textContent="Enter a valid email address.";return}
+  if(p.length<6){err.textContent="Password must be at least 6 characters.";return}
+  if(p!==$("spass2").value){err.textContent="Passwords don’t match.";return}
+  if(!$("sterms").checked){err.textContent="Please tick the box to continue.";return}
+  $("sgo").disabled=true;
+  try{var a=accs();if(a[u]){err.textContent="That email is already registered on this device. Try logging in.";return}
+    var salt=crypto.getRandomValues(new Uint8Array(16)),k=await keyFrom(p,salt);S={profile:{name:nm},vacc:[],appts:[]};
+    a[u]={salt:b2s(salt),check:await seal(k,{ok:1}),data:await seal(k,S)};putAccs(a);KEY=k;USER=u;
+    ["sname","semail","spass","spass2"].forEach(function(i){$(i).value=""});$("sterms").checked=false;show("congrats")}
+  catch(e){err.textContent="Couldn’t create the account. Your browser may block storage or encryption here."}
+  finally{$("sgo").disabled=false}}
+async function login(){
+  var err=$("lerr");err.textContent="";var u=$("lemail").value.trim().toLowerCase(),p=$("lpass").value;
+  if(!EM.test(u)||!p){err.textContent="Enter your email and password.";return}
+  $("lgo").disabled=true;
+  try{var a=accs();if(!a[u]){err.textContent="No account for that email on this device. Create an account first.";return}
+    var k=await keyFrom(p,s2b(a[u].salt));
+    try{await unseal(k,a[u].check)}catch(e){err.textContent="Wrong password.";return}
+    S=Object.assign({profile:{},vacc:[],appts:[]},await unseal(k,a[u].data));KEY=k;USER=u;$("lpass").value="";enter()}
+  catch(e){err.textContent="Couldn’t log in. Your browser may block storage or encryption here."}
+  finally{$("lgo").disabled=false}}
+$("sgo").onclick=signup;$("lgo").onclick=login;$("cgo").onclick=enter;
+$("lpass").onkeydown=function(e){if(e.key==="Enter")login()};
+stack=["welcome"];
+})();
+</script>
+</body>
+</html>
